@@ -19,13 +19,18 @@ class Power(Resource):
         app.logger.info("This is an info message")
 
         # Get POST data as json & read it as a DataFrame
-        payload_data_dict = request.get_json()
+        payload_data_dict = None
+        try:
+            payload_data_dict = request.get_json()
+        except Exception as err:
+            logging.error(err)
 
         false_or_message = sanity_check(payload_data_dict)
         if false_or_message:
             return false_or_message
 
         res = find_powerplants_production(payload_data_dict)
+
         return res
 
 
@@ -34,4 +39,4 @@ api.add_resource(Power, '/power')
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

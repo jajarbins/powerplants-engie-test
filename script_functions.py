@@ -11,13 +11,14 @@ def sanity_check(data):
 
     message = False
     try:
+        if not isinstance(data, dict):
+            raise TypeError("Can't read request body. A JSON is expected")
         for key in data:
             if not isinstance(key, str):
                 message = f"key should be string instead of {type(key)}: {key}"
                 raise TypeError(message)
-
-        if set(data.keys()).intersection(["load", "fuels", "powerplants"]) != {"load", "fuels", "powerplants"}:
-            message = f"wrong json keys received: {data}\nIt should be: load, fuels, powerplants"
+        if not all(key in data for key in ["load", "fuels", "powerplants"]):
+            message = f"wrong json keys received. It should be: load, fuels, powerplants. Instead we have: {data} "
             raise ValueError(message)
 
         if not isinstance(data["load"], int):
@@ -32,11 +33,9 @@ def sanity_check(data):
             message = f"powerplants should be a list, not {type(data['powerplants'])}"
             raise TypeError(message)
 
-        if set(data["fuels"].keys()).intersection(
-                ["gas(euro/MWh)", "kerosine(euro/MWh)", "co2(euro/ton)", "wind(%)"]) != \
-                {"gas(euro/MWh)", "kerosine(euro/MWh)", "co2(euro/ton)", "wind(%)"}:
-            message = f"wrong sub-json keys received: {data['fuels']}" \
-                      f"\nIt should be: gas(euro/MWh), kerosine(euro/MWh), co2(euro/ton), wind(%)"
+        if not all(key in data["fuels"] for key in ["gas(euro/MWh)", "kerosine(euro/MWh)", "co2(euro/ton)", "wind(%)"]):
+            message = f"wrong sub-json keys received. It should be: gas(euro/MWh), kerosine(euro/MWh), co2(euro/ton), " \
+                      f"wind(%). Instead we have: {data['fuels']}"
             raise ValueError(message)
 
         for key, value in data["fuels"].items():
@@ -45,8 +44,7 @@ def sanity_check(data):
                 raise TypeError(message)
 
         for pp_dict in data["powerplants"]:
-            if set(pp_dict.keys()).intersection(["name", "type", "efficiency", "pmin", "pmax"]) != \
-                    {"name", "type", "efficiency", "pmin", "pmax"}:
+            if not all(key in pp_dict for key in ["name", "type", "efficiency", "pmin", "pmax"]):
                 message = f"wrong sub-json keys received: {pp_dict}\nIt should be: name, type, efficiency, pmin, pmax"
                 raise ValueError(message)
 
@@ -69,12 +67,11 @@ def sanity_check(data):
             if not isinstance(pp_dict["pmax"], int):
                 message = f"pmax should be a list, not {type(pp_dict['pmax'])}"
                 raise TypeError(message)
-
         return message
-    except (ValueError, TypeError) as exc:
+    except (ValueError, TypeError) as err:
         logging.error(message)
-        logging.error(exc)
-        return message
+        logging.error(err)
+        return {"error": message}
 
 
 class PowerFinder:
@@ -82,7 +79,7 @@ class PowerFinder:
         self.load = data["load"]
         self.fuels = data["fuels"]
         self.powerplants = data["powerplants"]
-        self.emissions = 0.3  # ton of co2 per Mwh
+        self.emissions = 0.3  # ton of co2 per Mwh (for both Gaz and Kerosine ?)
         self.response = None
 
     def run(self):
@@ -91,24 +88,53 @@ class PowerFinder:
         self.set_response()
         return self.response
 
+    @staticmethod
+    def insort(a, x):
+        """
+        a custum insert_right function from bisect module. insert in list of dict and sort by cost value
+
+        :param a:
+        :param x:
+        :return:
+        """
+        lo = 0
+        hi = len(a)
+        while lo < hi:
+            mid = (lo+hi)//2
+            if x["cost"] < a[mid]["cost"]:
+                hi = mid
+            else:
+                lo = mid+1
+        a.insert(lo, x)
+
     def set_merit_order(self):
+        """
+        iterate through powerplants, estimate the cost and create and replace the previous powerplant list with a new
+        one sorted by cost
+        """
+
+        powerplants_sorted = []
+
         for pp in self.powerplants:
             if pp["type"] == "windturbine":
-                pp["pmax"] = int(self.fuels["wind(%)"] / 100 * pp["pmax"])
+                pp["pmax"] = int(pp["pmax"] * self.fuels["wind(%)"] / 100)
                 pp.update({"cost": 0})
+                self.insort(powerplants_sorted, pp)
 
             elif pp["type"] == "turbojet":
                 pp.update({"cost": pp["efficiency"] * (self.fuels["kerosine(euro/MWh)"] +
                                                        self.fuels["co2(euro/ton)"] * self.emissions)})
+                self.insort(powerplants_sorted, pp)
 
             elif pp["type"] == "gasfired":
                 pp.update({"cost": pp["efficiency"] * (self.fuels["gas(euro/MWh)"] +
                                                        self.fuels["co2(euro/ton)"] * self.emissions)})
+                self.insort(powerplants_sorted, pp)
 
             else:
                 raise TypeError(f"unknown powerplant type: {pp['type']}. Should be: windturbine, turbojet or gasfired")
 
-        self.powerplants.sort(key=lambda i: i["cost"])
+        self.powerplants = powerplants_sorted
 
     def find_power_algo(self):
         prod = 0
@@ -156,9 +182,11 @@ class PowerFinder:
 
 
 def find_powerplants_production(payload_data):
+    response = None
     try:
         response = PowerFinder(payload_data).run()
-    except Exception as exc:
+    except (TypeError, AttributeError, IndexError, KeyError, NameError, ValueError, AlgorithmError) as exc:
         logging.error(exc)
-        response = exc
-    return response
+        response = {"error": exc}
+    finally:
+        return response
