@@ -1,4 +1,4 @@
-from find_prooduction_plan_api.custom_exceptions import AlgorithmError
+from useful_functions_and_class.custom_exceptions import AlgorithmError
 
 
 class PowerFinder:

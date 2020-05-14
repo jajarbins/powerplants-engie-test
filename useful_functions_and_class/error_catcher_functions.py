@@ -1,8 +1,8 @@
 import logging
 
-from find_prooduction_plan_api.custom_exceptions import AlgorithmError
-from find_prooduction_plan_api.incoming_data_check import perform_sanity_check
-from find_prooduction_plan_api.power_finder import PowerFinder
+from useful_functions_and_class.custom_exceptions import AlgorithmError
+from useful_functions_and_class.incoming_data_check import perform_sanity_check
+from useful_functions_and_class.power_finder import PowerFinder
 
 
 def find_powerplants_production(payload_data):

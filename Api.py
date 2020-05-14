@@ -3,8 +3,8 @@ from flask import Flask, request
 from flask_restful import Resource, Api
 
 # Create Api
-from find_prooduction_plan_api.error_catcher_functions import find_powerplants_production
-from find_prooduction_plan_api.extract_data import extract_data
+from useful_functions_and_class.error_catcher_functions import find_powerplants_production
+from useful_functions_and_class.extract_data import extract_data
 
 app = Flask(__name__)
 api = Api(app)

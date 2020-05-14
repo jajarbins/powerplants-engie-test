@@ -1,4 +1,4 @@
-from find_prooduction_plan_api.error_catcher_functions import extract_json_from_request, sanity_check
+from useful_functions_and_class.error_catcher_functions import extract_json_from_request, sanity_check
 import logging
 
 
