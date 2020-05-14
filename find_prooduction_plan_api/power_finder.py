@@ -1,83 +1,4 @@
-# import Api
-import logging
-
-# logger = Api.app.logger
-
-
-class AlgorithmError(Exception):
-    """Raised when case is not coovered by the algorithm."""
-    pass
-
-
-def sanity_check(data):
-    """
-    Check keys and value type for received json from the post request.
-
-    Parameters:
-        data (dict): a dictionary containing load, fuels and powerplants as keys.
-
-    Returns:
-        message: False if the incoming dict is correct, an error message otherwise.
-    """
-    message = False
-    try:
-        if not isinstance(data, dict):
-            raise TypeError("Can't read request body. A JSON is expected")
-
-        for key in data:
-            if not isinstance(key, str):
-                message = f"key should be string instead of {type(key)}: {key}"
-                raise TypeError(message)
-
-        if not all(key in data for key in ["load", "fuels", "powerplants"]):
-            message = f"wrong json keys received. It should be: load, fuels, powerplants. Instead we have: {data} "
-            raise ValueError(message)
-
-        data_dict_keys_and_values_type = [
-            ("load", int),
-            ("fuels", dict),
-            ("powerplants", list)
-        ]
-
-        for dict_key, value_type in data_dict_keys_and_values_type:
-            if not isinstance(data[dict_key], value_type):
-                message = f"{dict_key} should be a {value_type}, not {type(data[dict_key])}"
-                raise TypeError(message)
-
-        if not all(key in data["fuels"] for key in ["gas(euro/MWh)", "kerosine(euro/MWh)", "co2(euro/ton)", "wind(%)"]):
-            message = f"wrong sub-json keys received. It should be: gas(euro/MWh), kerosine(euro/MWh), co2(euro/ton), " \
-                      f"wind(%). Instead we have: {data['fuels']}"
-            raise ValueError(message)
-
-        for key, value in data["fuels"].items():
-            if not isinstance(value, (int, float)):
-                message = f"{key} value should be int or float instead of {type(value)}: {value}"
-                raise TypeError(message)
-
-        for pp_dict in data["powerplants"]:
-            if not all(key in pp_dict for key in ["name", "type", "efficiency", "pmin", "pmax"]):
-                message = f"wrong sub-json keys received: {pp_dict}\nIt should be: name, type, efficiency, pmin, pmax"
-                raise ValueError(message)
-
-            powerplants_dict_keys_and_values_type = [
-                ("name", str),
-                ("type", str),
-                ("efficiency", (int, float)),
-                ("pmin", int),
-                ("pmax", int),
-            ]
-
-            for dict_key, value_type in powerplants_dict_keys_and_values_type:
-                if not isinstance(pp_dict[dict_key], value_type):
-                    message = f"{dict_key} should be a {value_type}, not {type(pp_dict[dict_key])}"
-                    raise TypeError(message)
-
-        return message
-    except (ValueError, TypeError) as err:
-        logging.error(message)
-        logging.error(err)
-        return {"error-message": message,
-                "error": err}
+from find_prooduction_plan_api.custom_exceptions import AlgorithmError
 
 
 class PowerFinder:
@@ -98,8 +19,8 @@ class PowerFinder:
             of the different powerplants.
         """
         self.set_merit_order()
-        self.find_power_algo()
-        self.set_response()
+        self.find_power_plan()
+        self.generate_response()
         return self.response
 
     @staticmethod
@@ -150,7 +71,7 @@ class PowerFinder:
 
         self.powerplants = powerplants_sorted
 
-    def find_power_algo(self):
+    def find_power_plan(self):
         """The algorithm which take the powerplant in the merit order and set the"""
         prod = 0
 
@@ -167,17 +88,17 @@ class PowerFinder:
 
             # if pmin of current powerplant is too high to fill the load
             elif prod + pp["pmin"] > self.load:
-                previous_pp_p_left_shift = prod + pp["pmin"] - self.load
+                previous_powerplant_power_offset = prod + pp["pmin"] - self.load
 
                 # check if there is a previous powerplant in the stack
                 if i > 0:
 
                     # check if we can subtract to previous powerplant the needed production for the current powerplant
                     # to fill the load
-                    if self.powerplants[i - 1]["pmax"] - self.powerplants[i - 1]["pmin"] >= previous_pp_p_left_shift:
-                        self.powerplants[i - 1]["p"] -= previous_pp_p_left_shift
+                    if self.powerplants[i - 1]["pmax"] - self.powerplants[i - 1]["pmin"] >= previous_powerplant_power_offset:
+                        self.powerplants[i - 1]["p"] -= previous_powerplant_power_offset
                         pp.update({"p": pp["pmin"]})
-                        prod += pp["p"] - previous_pp_p_left_shift
+                        prod += pp["p"] - previous_powerplant_power_offset
 
                     else:
                         raise AlgorithmError("this algorithm is not robust enough, it can't subtract the production of "
@@ -193,28 +114,8 @@ class PowerFinder:
                 pp.update({"p": self.load - prod})
                 prod += pp["p"]
 
-    def set_response(self):
+    def generate_response(self):
         """create a new list of dictionary for the request response.
         It is based on powerplants one with only the name and production."""
         self.response = [{"name": pp["name"], "p": pp["p"]} for pp in self.powerplants]
 
-
-def find_powerplants_production(payload_data):
-    """
-    the method to call to find the production plan.
-    It instantiates a PowerFinder object and catch errors if some appears.
-
-    Parameters:
-        payload_data (dict): a dictionary containing load, fuels and powerplants as keys
-
-    Returns:
-        message: False if the incoming dict is correct, an error message otherwise
-    """
-    response = None
-    try:
-        response = PowerFinder(payload_data).run()
-    except (TypeError, AttributeError, IndexError, KeyError, NameError, ValueError, AlgorithmError) as err:
-        logging.error(err)
-        response = {"error": err}
-    finally:
-        return response
