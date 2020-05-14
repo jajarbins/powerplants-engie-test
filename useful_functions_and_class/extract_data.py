@@ -7,10 +7,10 @@ def extract_data(request):
     Check if the request contains the expected data
 
     Parameters:
-        request:
-    :return:
+        request (str): the request received
+    Returns:
+        data_or_error (dict): no variables set but it returns an error if detected or the data converted into a dict
     """
-
     # Check if request contains data and if it is extractable
     if request.data:
         is_data_extracted, request_body_content_or_error = extract_json_from_request(request)

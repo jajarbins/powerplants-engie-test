@@ -10,7 +10,7 @@ app = Flask(__name__)
 api = Api(app)
 
 # Config Logger
-logging.basicConfig(filename="../log_file.log",
+logging.basicConfig(filename="./log_file.log",
                     level=logging.ERROR,
                     format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
 
@@ -18,7 +18,6 @@ logging.basicConfig(filename="../log_file.log",
 # Creation of main endpoint classes
 class Power(Resource):
     def post(self):
-
         request_body_content = extract_data(request)
         if "error" in request_body_content and len(request_body_content) == 1:
             return request_body_content

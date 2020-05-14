@@ -34,6 +34,7 @@ def perform_sanity_check(data):
     type_checking(data, dict)
     type_checking(data["load"], (int, float))
     check_json_layer(data, first_layer_keys_and_values_type)
+    
     check_json_layer(data["fuels"], fuels_layer_keys_and_values_type)
     type_checking(data["powerplants"], list)
     for pp_dict in data["powerplants"]:
