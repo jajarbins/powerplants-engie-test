@@ -1,4 +1,7 @@
+# import Api
 import logging
+
+# logger = Api.app.logger
 
 
 class AlgorithmError(Exception):
@@ -73,7 +76,8 @@ def sanity_check(data):
     except (ValueError, TypeError) as err:
         logging.error(message)
         logging.error(err)
-        return {"error": message}
+        return {"error-message": message,
+                "error": err}
 
 
 class PowerFinder:
@@ -102,11 +106,11 @@ class PowerFinder:
     def insort(a, x):
         """
         a custum insert_right function from bisect module.
-        insert "x" in "a" assuming "x" is a dict, "a" a list of dict, and "x" and every dict
-        in "a" have contain the key "cost".
+        insert "x" in "a" assuming "x" is a dict, "a" a list of dict, "x" and every dict
+        in "a" contains the key "cost".
 
         Parameters:
-            a (list): a list of dict, the dict must contain "cost" as key
+            a (list): a list of dictionary, the dictionaries must contain "cost" as key
             x (dict): the dict to insert in the "cost" value order.
         """
         lo = 0

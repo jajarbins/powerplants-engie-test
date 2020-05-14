@@ -1,7 +1,7 @@
 import unittest
 import json
 
-from find_prooduction_plan_api.Api import app
+from Api import app
 
 
 class ApiRunningTest(unittest.TestCase):
