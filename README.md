@@ -3,6 +3,7 @@
 ## Welcome !
 
 This is my implementation of the coding challenge proposed by the IS team of the SPaaS team within ENGIE GEM
+
 You can Find the description of the challenge [here](https://github.com/gem-spaas/powerplant-coding-challenge)
 
 ## How to run it ?
