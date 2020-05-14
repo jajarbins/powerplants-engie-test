@@ -10,9 +10,12 @@ You can Find the description of the challenge [here](https://github.com/gem-spaa
 ### Windows: 
 
 Open a command Prompt.
-Create a virtual environment with your favourite package manager and activate it. Python version should be 3.6
-Change directory to the project root.
-Then install the dependencies with the command:
+
+Create a virtual environment with your favourite package manager and activate it. Python version should be 3.6 
+
+Change directory to the project root. 
+
+Then install the dependencies with the command: 
 ```bash
 pip install -r requirements.txt
 ```
