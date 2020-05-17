@@ -22,15 +22,15 @@ class Powerplant:
     def set_cost(self, cost):
         self.cost = cost
 
+    def set_production(self, production):
+        self.production = production
+
 
 class PowerFinder(Payload):
     """The class that will find the production plan."""
 
     def __init__(self, data):
         super().__init__(data)
-        # self.load = data["load"]
-        # self.fuels = data["fuels"]
-        # self.powerplants = data["powerplants"]
 
     def run(self):
         """
@@ -69,7 +69,7 @@ class PowerFinder(Payload):
         for i, pp in enumerate(self.powerplants):
 
             if self.__is_load_already_satisfied(total_production):
-                pp.production = 0
+                pp.set_production(0)
                 continue
 
             elif self.__is_load_unsatisfied_by_adding_powerplant_max_production(total_production, pp.pmax):
@@ -113,6 +113,7 @@ class PowerFinder(Payload):
     def __estimate_cost(self, powerplant):
         """
         Estimate the cost of producing electricity with a powerplant.
+
         Parameters:
             powerplant (Powerplant): The current powerplant
         Returns:
@@ -123,6 +124,7 @@ class PowerFinder(Payload):
     def get_fuel(self, powerplant):
         """
         Given a powerplant, returns its fuel cost.
+
         Parameters:
             powerplant (Powerplant): The current powerplant
         Returns:
@@ -140,6 +142,7 @@ class PowerFinder(Payload):
     def __is_load_already_satisfied(self, total_production):
         """
         Return True if load already satisfied, False otherwise.
+
         Parameters:
             total_production (int): The combined production of all the powerplant delivering power.
         Returns:
@@ -150,6 +153,7 @@ class PowerFinder(Payload):
     def __is_load_unsatisfied_by_adding_powerplant_max_production(self, total_production, powerplant_max_production):
         """
         If the current powerplant pmax is not enough to fill the load, it's production is set to pmax.
+
         Parameters:
             total_production (int): The combined production of all the powerplant delivering power.
             powerplant_max_production (int): The powerplant maximum production.
@@ -161,6 +165,7 @@ class PowerFinder(Payload):
     def __is_powerplant_pmin_too_high_to_fill_the_load(self, total_production, powerplant_min_production):
         """
         If the minimum production of the current powerplant is too low to fill the load.
+
         Parameters:
             total_production (int): The combined production of all the powerplant delivering power.
             powerplant_min_production (int): The powerplant maximum production.
@@ -190,6 +195,7 @@ class PowerFinder(Payload):
         """
         If the current powerplant max production is enough to fill the load, but pmin is higher, we set the production
         to what we need to fill the load.
+
         Parameters:
             total_production (int):
             powerplant (Powerplant):
@@ -202,7 +208,8 @@ class PowerFinder(Payload):
     def __update_current_powerplant_production(powerplant, powerplant_production,
                                                previous_powerplant_production_offset=0):
         """
-        Update an item of the given powerplant
+        Update an item of the given powerplant.
+
         Parameters:
             powerplant (Powerplant): The current powerplant
             powerplant_production (int): the current powerplant production
@@ -210,7 +217,7 @@ class PowerFinder(Payload):
         Returns:
             (int): The offset of the total production
         """
-        powerplant.production = powerplant_production
+        powerplant.set_production(powerplant_production)
         return powerplant.production - previous_powerplant_production_offset
 
     def __perform_previous_and_current_powerplant_production_adjustment(self,
@@ -229,8 +236,10 @@ class PowerFinder(Payload):
         if self.__previous_powerplant_production_interval_higher_than_needed_production_offset(
                 previous_powerplant, previous_powerplant_production_offset):
 
-            # decrease prrodction of previous powerplant
-            previous_powerplant.production -= previous_powerplant_production_offset
+            # decrease prodction of previous powerplant for next one to be turned on.
+            previous_powerplant.set_production(previous_powerplant.production - previous_powerplant_production_offset)
+
+            # set production of current powerplant to pmin
             return self.__update_current_powerplant_production(powerplant, powerplant.pmin,
                                                                previous_powerplant_production_offset)
         else:
