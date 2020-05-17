@@ -8,34 +8,34 @@ class TypeCheckingTest(unittest.TestCase):
     def setUp(self):
         pass
 
-    def run_test_int(self):
+    def test_type_checking_int(self):
         try:
             type_checking(2, int)
         except Exception:
             self.fail("type_checking(2, int) raised Exception unexpectedly!")
 
-    def run_test_str(self):
+    def test_type_checking_str(self):
         try:
             type_checking("", str)
         except Exception:
             self.fail("type_checking('', str) raised Exception unexpectedly!")
 
-    def type_does_not_fit(self):
+    def test_type_checking_type_does_not_fit(self):
         self.assertRaises(TypeError, type_checking, {"data_to_check": 0, "type_to_check": str})
 
-    def run_test_int_with_optional_args(self):
+    def test_type_checking_int_with_optional_args(self):
         try:
             type_checking(2, int, "data_name")
         except Exception:
             self.fail("type_checking(2, int) raised Exception unexpectedly!")
 
-    def run_test_str_with_optional_args(self):
+    def test_type_checking_str_with_optional_args(self):
         try:
             type_checking("", str, "data_name")
         except Exception:
             self.fail("type_checking('', str) raised Exception unexpectedly!")
 
-    def type_does_not_fit_with_optional_args(self):
+    def test_type_checking_type_does_not_fit_with_optional_args(self):
         self.assertRaises(TypeError, type_checking, {"data_to_check": 0, "type_to_check": str, "data_name": "a"})
 
 
