@@ -1,24 +1,25 @@
-first_layer_keys_and_values_type = [
-    ("load", int),
-    ("fuels", dict),
-    ("powerplants", list)
+from useful_functions_and_class.custom_exceptions import SanityCheckInternalError
+
+first_layer_keys_and_values_type_and_interval = [
+    ("load", int, (0,)),
+    ("fuels", dict, None),
+    ("powerplants", list, None)
 ]
 
-fuels_layer_keys_and_values_type = [
-    ("gas(euro/MWh)", (int, float)),
-    ("kerosine(euro/MWh)", (int, float)),
-    ("co2(euro/ton)", (int, float)),
-    ("wind(%)", (int, float)),
+fuels_layer_keys_values_type_and_interval = [
+    ("gas(euro/MWh)", (int, float), None),
+    ("kerosine(euro/MWh)", (int, float), None),
+    ("co2(euro/ton)", (int, float), (0,)),
+    ("wind(%)", (int, float), (0, 100)),
 ]
 
-powerplants_layer_keys_and_values_type = [
-    ("name", str),
-    ("type", str),
-    ("efficiency", (int, float)),
-    ("pmin", int),
-    ("pmax", int),
+powerplants_layer_keys_and_values_type_and_interval = [
+    ("name", str, None),
+    ("type", str, None),
+    ("efficiency", (int, float), (0, 1)),
+    ("pmin", int, (0, "pmax")),
+    ("pmax", int, ("pmin",)),
 ]
-
 
 
 def perform_sanity_check(data):
@@ -33,12 +34,12 @@ def perform_sanity_check(data):
     """
     type_checking(data, dict)
     type_checking(data["load"], (int, float))
-    check_json_layer(data, first_layer_keys_and_values_type)
-    
-    check_json_layer(data["fuels"], fuels_layer_keys_and_values_type)
+    check_json_layer(data, first_layer_keys_and_values_type_and_interval)
+
+    check_json_layer(data["fuels"], fuels_layer_keys_values_type_and_interval)
     type_checking(data["powerplants"], list)
     for pp_dict in data["powerplants"]:
-        check_json_layer(pp_dict, powerplants_layer_keys_and_values_type)
+        check_json_layer(pp_dict, powerplants_layer_keys_and_values_type_and_interval)
 
 
 def type_checking(data_to_check, type_to_check, key=None):
@@ -57,7 +58,47 @@ def values_checking(values_list, expected_values):
         raise ValueError(error_message)
 
 
+def interval_checking(json_layer, layer_key, interval):
+    """
+
+    Parameters:
+        json_layer (dict): the current json layer to test
+        layer_key (str): the current dict item's key to test
+        interval (tuple):
+    """
+    if len(interval) == 1:
+        minimum_value = convert_interval_value(interval[0], json_layer)
+        if json_layer[layer_key] - minimum_value < 0:
+            raise ValueError(f"{layer_key} value: {json_layer[layer_key]} must be higher than {minimum_value}")
+    elif len(interval) == 2:
+        minimum_value = convert_interval_value(interval[0], json_layer)
+        maximum_value = convert_interval_value(interval[1], json_layer)
+
+        if not minimum_value <= json_layer[layer_key] <= maximum_value:
+            raise SanityCheckInternalError(
+                f"{layer_key} value of {json_layer[layer_key]} is not in the interval [{minimum_value}, {maximum_value}]"
+                f" for dict {json_layer} ")
+
+    else:
+        raise SanityCheckInternalError("Incorrect number of element in interval parameter.")
+
+
+def convert_interval_value(interval_bound, json_layer=None):
+    if isinstance(interval_bound, str):
+        if json_layer is not None:
+            return json_layer[interval_bound]
+        else:
+            raise SanityCheckInternalError(
+                "You should provide the dictionary you are analysing as parameters to the current function")
+    else:
+        return interval_bound
+
+
 def check_json_layer(json_layer, pairs_of_key_and_value_type):
     values_checking(json_layer, [item[0] for item in pairs_of_key_and_value_type])
-    for dict_key, value_type in pairs_of_key_and_value_type:
-        type_checking(json_layer[dict_key], value_type, dict_key)
+
+    for layer_key, value_type, interval in pairs_of_key_and_value_type:
+
+        type_checking(json_layer[layer_key], value_type, layer_key)
+        if interval is not None:
+            interval_checking(json_layer, layer_key, interval)
