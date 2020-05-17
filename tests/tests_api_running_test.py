@@ -21,3 +21,7 @@ class ApiRunningTest(unittest.TestCase):
         self.assertEqual(list, type(response.json))
         self.assertCountEqual(response.json, expected_output)
         self.assertEqual(200, response.status_code)
+
+
+if __name__ == '__main__':
+    unittest.main()
