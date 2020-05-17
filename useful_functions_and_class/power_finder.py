@@ -41,7 +41,7 @@ class PowerFinder:
         self.powerplants = powerplants_sorted
 
     def find_power_plan(self):
-        """The algorithm which take the powerplant in the merit order and set the"""
+        """The algorithm which take the powerplant in the merit order and set the production plan"""
         total_production = 0
 
         for i, pp in enumerate(self.powerplants):
@@ -58,6 +58,9 @@ class PowerFinder:
             elif self.__needed_power_to_fill_the_load_in_current_powerplant_production_interval(total_production, pp):
                 total_production += self.__update_powerplant_production_and_returns_total_production(
                     pp, self.load - total_production)
+
+        if self.load != total_production:
+            raise AlgorithmError("production does not fill the load")
 
     def generate_response(self):
         """create a new list of dictionary for the request response.
@@ -138,9 +141,7 @@ class PowerFinder:
         Returns:
             (bool): True if load already satisfied, False otherwise.
         """
-        if total_production - self.load == 0:
-            return True
-        return False
+        return total_production - self.load == 0
 
     def __load_unsatisfied_by_adding_powerplant_max_production(self, total_production, powerplant_max_production):
         """
@@ -151,9 +152,7 @@ class PowerFinder:
         Returns:
             (bool): True condition satisfied, False otherwise.
         """
-        if total_production + powerplant_max_production - self.load < 0:
-            return True
-        return False
+        return total_production + powerplant_max_production - self.load < 0
 
     def __powerplant_pmin_too_high_to_fill_the_load(self, total_production, powerplant_min_production):
         """
@@ -164,9 +163,7 @@ class PowerFinder:
         Returns:
             (bool): True condition satisfied, False otherwise.
         """
-        if total_production + powerplant_min_production - self.load > 0:
-            return True
-        return False
+        return total_production + powerplant_min_production - self.load > 0
 
     def __previous_powerplant_production_interval_higher_than_needed_production_offset(
             self, current_powerplant_index, previous_powerplant_power_needed_offset):
@@ -181,10 +178,9 @@ class PowerFinder:
         Returns:
             (bool): True condition satisfied, False otherwise.
         """
-        if self.powerplants[current_powerplant_index-1]["pmax"] \
-                - self.powerplants[current_powerplant_index-1]["pmin"] - previous_powerplant_power_needed_offset > 0:
-            return True
-        return False
+        power_production_interval = self.powerplants[current_powerplant_index-1]["pmax"] - \
+                                    self.powerplants[current_powerplant_index-1]["pmin"]
+        return power_production_interval - previous_powerplant_power_needed_offset > 0
 
     def __needed_power_to_fill_the_load_in_current_powerplant_production_interval(self,total_production, powerplant):
         """
@@ -196,9 +192,7 @@ class PowerFinder:
         Returns:
             (bool): True condition satisfied, False otherwise.
         """
-        if total_production + powerplant["pmax"] >= self.load >= total_production + powerplant["pmin"]:
-            return True
-        return False
+        return total_production + powerplant["pmax"] >= self.load >= total_production + powerplant["pmin"]
 
     def __update_powerplant_production_and_returns_total_production(self, powerplant, powerplant_production,
                                                                     previous_powerplant_power_needed_offset=0):
@@ -245,7 +239,7 @@ class PowerFinder:
         Parameters:
             total_pruduction (int): The combined production of all the powerplant delivering power.
             powerplant (dict): A powerplant as dict
-            current_powerplant_index (int): The index od the current powerplant in the merit order.
+            current_powerplant_index (int): The index of the current powerplant in the merit order.
         """
         # calculate how much we need to subtract from previous powerplant for current one to fill the load
         previous_powerplant_power_needed_offset = total_production + powerplant["pmin"] - self.load

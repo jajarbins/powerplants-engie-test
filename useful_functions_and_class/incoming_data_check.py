@@ -42,12 +42,22 @@ def perform_sanity_check(data):
         check_json_layer(pp_dict, powerplants_layer_keys_and_values_type_and_interval)
 
 
-def type_checking(data_to_check, type_to_check, key=None):
+def type_checking(data_to_check, type_to_check, data_name=None):
+    """
+    Check if data_to_check is of type: type_to_check
+    Raise a TypeError with a custom message if not the case.
+
+    Parameters:
+        data_to_check: a value
+        type_to_check (type): a python type
+        data_name (str: The data_to_check name in order to write an error message
+    :return:
+    """
     if not isinstance(data_to_check, type_to_check):
-        if key:
-            error_message = f"{data_to_check} should be {type_to_check} instead of {type(data_to_check)}: {type_to_check}"
+        if data_name:
+            error_message = f"{data_name} value should be {type_to_check} instead of {type(data_to_check)}: {data_to_check}"
         else:
-            error_message = f"{key} value should be {type_to_check} instead of {type(data_to_check)}: {data_to_check}"
+            error_message = f"{data_to_check} should be {type_to_check} instead of {type(data_to_check)}: {type_to_check}"
         raise TypeError(error_message)
 
 
