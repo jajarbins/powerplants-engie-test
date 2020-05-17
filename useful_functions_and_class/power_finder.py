@@ -119,7 +119,7 @@ class PowerFinder(Payload):
         """
         return powerplant.efficiency * (self.fuels[fuels_type] + self.fuels["co2(euro/ton)"] * self.emissions)
 
-    def __update_cost_powerplant_and_sort_it(self,powerplants, powerplant, cost=0):
+    def __update_cost_powerplant_and_sort_it(self, powerplants, powerplant, cost=0):
         """
         Update powerplant cost and insert powerplant in the merit order
         Parameters:
@@ -127,7 +127,7 @@ class PowerFinder(Payload):
             powerplant (Powerplant): A powerplant as dict
             cost (float): The cost of generating power with a powerplant
         """
-        self.cost = cost
+        powerplant.cost = cost
         self.__insort(powerplants, powerplant)
 
     def __estimate_cost_update_powerplant_and_sort_it(self, powerplants, powerplant, fuels_type):
