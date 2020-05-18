@@ -1,8 +1,9 @@
 import unittest
 
+from . import payload
 from useful_functions_and_class.custom_exceptions import SanityCheckInternalError
 from useful_functions_and_class.incoming_data_check import type_checking, values_checking, interval_checking, \
-    convert_interval_value, check_json_layer
+    convert_interval_value, check_json_layer, perform_sanity_check
 
 
 class TypeCheckingTest(unittest.TestCase):
@@ -279,7 +280,26 @@ class CheckJsonLayerTest(unittest.TestCase):
         self.assertRaises(ValueError, check_json_layer, **{"json_layer": a, "key_value_type_and_interval": b})
 
 
+# perform_sanity_check
+class PerformSanityCheckTest(unittest.TestCase):
 
+    def setUp(self):
+        pass
+
+    def test_perform_sanity_check_ExpectedDict_NoException(self):
+        data = payload
+        try:
+            perform_sanity_check(data)
+        except Exception:
+            self.fail("interval_checking raised Exception unexpectedly!")
+
+    def test_perform_sanity_check_DictWithMoreElements_NoException(self):
+        data = payload
+        data.update({"a": 1})
+        try:
+            perform_sanity_check(data)
+        except Exception:
+            self.fail("interval_checking raised Exception unexpectedly!")
 
 
 if __name__ == '__main__':
