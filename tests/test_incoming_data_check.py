@@ -301,6 +301,21 @@ class PerformSanityCheckTest(unittest.TestCase):
         except Exception:
             self.fail("interval_checking raised Exception unexpectedly!")
 
+    def test_perform_sanity_check_WrongValue_ValueError(self):
+        data = payload.copy()
+        data["load"] = -1
+        self.assertRaises(ValueError, perform_sanity_check, **{"data": data})
+
+    def test_perform_sanity_check_WrongKey_KeyError(self):
+        data = payload.copy()
+        data["daol"] = data.pop("load")
+        self.assertRaises(KeyError, perform_sanity_check, **{"data": data})
+
+    def test_perform_sanity_check_MissingKey_KeyError(self):
+        data = payload.copy()
+        del data["load"]
+        self.assertRaises(KeyError, perform_sanity_check, **{"data": data})
+
 
 if __name__ == '__main__':
     unittest.main()
