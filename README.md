@@ -1,10 +1,12 @@
 # Coding Challenge
 
-Work in Progress: 
-- Add parts to README (how to test webhook/websocket ; API Logic Explanation ; Algorithm Explanation)
+Work in Progress, TODO :
+- Add parts to README (how to test webhook ; API Logic Explanation ; Algorithm Explanation)
 - remove returning custom error message 
 - test PowerFinder (sort_by_merit_order ; insort ; update_powerplants_production)
 - add Websocket handling
+- add test for Websocket 
+- Add how to test websocket to README 
 - dockerise
 
 
