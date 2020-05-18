@@ -49,7 +49,7 @@ def type_checking(data_to_check, type_to_check, data_name=None):
 
     Parameters:
         data_to_check: a value
-        type_to_check (type): a python type
+        type_to_check (type, tuple): a python type
         data_name (str: The data_to_check name in order to write an error message
     """
     if not isinstance(data_to_check, type_to_check):
@@ -65,7 +65,7 @@ def values_checking(values_list, expected_values):
     Check if all items in values_list are in expected_values
 
     Parameters:
-        values_list (list, tuples, dict_keys):
+        values_list (dict, list, tuples, dict_keys):
         expected_values (list, tuples, dict_keys):
     """
     if not all(key in values_list for key in expected_values):
@@ -102,6 +102,15 @@ def interval_checking(json_layer, layer_key, interval):
 
 
 def convert_interval_value(interval_bound, json_layer=None):
+    """
+    if interval_bound is a string, we return the associated value with this key
+
+    Parameters:
+        interval_bound (int, float, str):
+        json_layer (dict):
+    Returns:
+        interval_bound (int, float)
+    """
     if isinstance(interval_bound, str):
         if json_layer is not None:
             return json_layer[interval_bound]
@@ -112,10 +121,18 @@ def convert_interval_value(interval_bound, json_layer=None):
         return interval_bound
 
 
-def check_json_layer(json_layer, pairs_of_key_and_value_type):
-    values_checking(json_layer, [item[0] for item in pairs_of_key_and_value_type])
+def check_json_layer(json_layer, key_value_type_and_interval):
+    """
+    Check if json layer keys, value type, and if values are in an interval or not
 
-    for layer_key, value_type, interval in pairs_of_key_and_value_type:
+    Parameters:
+        json_layer (dict): the json layer to consider
+        key_value_type_and_interval (list): a list of tuples of triplets: key, value and interval. Interval must be a
+                                                tuple of one or two elements
+    """
+    values_checking(json_layer, [item[0] for item in key_value_type_and_interval])
+
+    for layer_key, value_type, interval in key_value_type_and_interval:
 
         type_checking(json_layer[layer_key], value_type, layer_key)
         if interval is not None:

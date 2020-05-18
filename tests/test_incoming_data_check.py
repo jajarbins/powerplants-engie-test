@@ -2,7 +2,7 @@ import unittest
 
 from useful_functions_and_class.custom_exceptions import SanityCheckInternalError
 from useful_functions_and_class.incoming_data_check import type_checking, values_checking, interval_checking, \
-    convert_interval_value
+    convert_interval_value, check_json_layer
 
 
 class TypeCheckingTest(unittest.TestCase):
@@ -194,6 +194,90 @@ class ConvertIntervalValueTest(unittest.TestCase):
 
     def test_convert_interval_value_StrWithoutJsonLayer_SanityCheckInternalError(self):
         self.assertRaises(SanityCheckInternalError, convert_interval_value, **{"interval_bound": "b"})
+
+
+class CheckJsonLayerTest(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def test_check_json_layer_IntDict_NoException(self):
+        a = {"a": 1, "b": {"x": 1}}
+        b = [
+            ("a", int, (0,)),
+            ("b", dict, None)
+        ]
+        try:
+            check_json_layer(a, b)
+        except Exception:
+            self.fail("check_json_layer raised Exception unexpectedly!")
+
+    def test_check_json_layer_IntervalAsStrAndValueHigherThanInterval_NoException(self):
+        a = {"a": 2, "b": 1}
+        b = [
+            ("a", int, ("b",)),
+            ("b", int, None)
+        ]
+        try:
+            check_json_layer(a, b)
+        except Exception:
+            self.fail("check_json_layer raised Exception unexpectedly!")
+
+    def test_check_json_layer_WrongKey_ValueError(self):
+        a = {"a": 1, "b": {"x": 1}}
+        b = [
+            ("a", int, (0,)),
+            ("c", dict, None)
+        ]
+        self.assertRaises(ValueError, check_json_layer, **{"json_layer": a, "key_value_type_and_interval": b})
+
+    def test_check_json_layer_WrongValueType_TypeError(self):
+        a = {"a": 1, "b": {"x": 1}}
+        b = [
+            ("a", str, (0,)),
+            ("b", dict, None)
+        ]
+        self.assertRaises(TypeError, check_json_layer, **{"json_layer": a, "key_value_type_and_interval": b})
+
+    def test_check_json_layer_ValueLowerThanInterval_ValueError(self):
+        a = {"a": 1, "b": {"x": 1}}
+        b = [
+            ("a", int, (2,)),
+            ("b", dict, None)
+        ]
+        self.assertRaises(ValueError, check_json_layer, **{"json_layer": a, "key_value_type_and_interval": b})
+
+    def test_check_json_layer_ValueOutOfInterval_ValueError(self):
+        a = {"a": 1, "b": {"x": 1}}
+        b = [
+            ("a", int, (2, 3)),
+            ("b", dict, None)
+        ]
+        self.assertRaises(ValueError, check_json_layer, **{"json_layer": a, "key_value_type_and_interval": b})
+
+    def test_check_json_layer_IntervalSetWhereItShouldNot_TypeError(self):
+        a = {"a": 1, "b": {"x": 1}}
+        b = [
+            ("a", int, (0,)),
+            ("b", dict, (1,))
+        ]
+        self.assertRaises(TypeError, check_json_layer, **{"json_layer": a, "key_value_type_and_interval": b})
+
+    def test_check_json_layer_IntervalAsStrButStrNotInJsonKey_KeyError(self):
+        a = {"a": 1, "b": 2}
+        b = [
+            ("a", int, ("c",)),
+            ("b", int, None)
+        ]
+        self.assertRaises(KeyError, check_json_layer, **{"json_layer": a, "key_value_type_and_interval": b})
+
+    def test_check_json_layer_IntervalAsStrAndValueTooLow_ValueError(self):
+        a = {"a": 1, "b": 2}
+        b = [
+            ("a", int, ("b",)),
+            ("b", int, None)
+        ]
+        self.assertRaises(ValueError, check_json_layer, **{"json_layer": a, "key_value_type_and_interval": b})
+
 
 
 
