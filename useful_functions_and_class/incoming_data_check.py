@@ -51,7 +51,6 @@ def type_checking(data_to_check, type_to_check, data_name=None):
         data_to_check: a value
         type_to_check (type): a python type
         data_name (str: The data_to_check name in order to write an error message
-    :return:
     """
     if not isinstance(data_to_check, type_to_check):
         if data_name:
@@ -62,6 +61,13 @@ def type_checking(data_to_check, type_to_check, data_name=None):
 
 
 def values_checking(values_list, expected_values):
+    """
+    Check if all items in values_list are in expected_values
+
+    Parameters:
+        values_list (list, tuples, dict_keys):
+        expected_values (list, tuples, dict_keys):
+    """
     if not all(key in values_list for key in expected_values):
         error_message = f"wrong json keys received. It should be:" \
                         f"{[str(expected_value) for expected_value in expected_values]}. Instead we have: {values_list}"
@@ -70,6 +76,9 @@ def values_checking(values_list, expected_values):
 
 def interval_checking(json_layer, layer_key, interval):
     """
+    Check if layer_key of json_layer is in interval
+    If interval contains one value, layer_key value must be higher,
+    If interval contains two values, mayer_key value must be betwwen those values
 
     Parameters:
         json_layer (dict): the current json layer to test
@@ -78,6 +87,7 @@ def interval_checking(json_layer, layer_key, interval):
     """
     if len(interval) == 1:
         minimum_value = convert_interval_value(interval[0], json_layer)
+
         if json_layer[layer_key] - minimum_value < 0:
             raise ValueError(f"{layer_key} value: {json_layer[layer_key]} must be higher than {minimum_value}")
     elif len(interval) == 2:
@@ -85,10 +95,8 @@ def interval_checking(json_layer, layer_key, interval):
         maximum_value = convert_interval_value(interval[1], json_layer)
 
         if not minimum_value <= json_layer[layer_key] <= maximum_value:
-            raise SanityCheckInternalError(
-                f"{layer_key} value of {json_layer[layer_key]} is not in the interval [{minimum_value}, {maximum_value}]"
-                f" for dict {json_layer} ")
-
+            raise ValueError(f"{layer_key} value of {json_layer[layer_key]} is not in the interval "
+                             f"[{minimum_value}, {maximum_value}] for dict {json_layer} ")
     else:
         raise SanityCheckInternalError("Incorrect number of element in interval parameter.")
 

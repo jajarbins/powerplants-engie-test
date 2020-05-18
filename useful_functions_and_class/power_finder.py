@@ -119,9 +119,9 @@ class PowerFinder(Payload):
         Returns:
             cost (float): The cost of generating power with a powerplant
         """
-        return powerplant.efficiency * (self.get_fuel(powerplant) + self.fuels["co2(euro/ton)"] * self.emissions)
+        return powerplant.efficiency * (self.set_fuel(powerplant) + self.fuels["co2(euro/ton)"] * self.emissions)
 
-    def get_fuel(self, powerplant):
+    def set_fuel(self, powerplant):
         """
         Given a powerplant, returns its fuel cost.
 
