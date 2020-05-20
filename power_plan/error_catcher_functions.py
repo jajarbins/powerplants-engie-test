@@ -1,8 +1,8 @@
 import logging
 
-from useful_functions_and_class.custom_exceptions import AlgorithmError, SanityCheckInternalError
-from useful_functions_and_class.incoming_data_check import perform_sanity_check
-from useful_functions_and_class.power_finder import PowerFinder
+from power_plan.custom_exceptions import AlgorithmError, SanityCheckInternalError
+from power_plan.incoming_data_check import perform_sanity_check
+from power_plan.powerplan import PowerPlan
 
 
 def find_powerplants_production(payload_data):
@@ -17,7 +17,7 @@ def find_powerplants_production(payload_data):
         message: False if the incoming dict is correct, an error message otherwise
     """
     try:
-        return PowerFinder(payload_data).run()
+        return PowerPlan(payload_data).run()
     except (TypeError, AttributeError, IndexError, KeyError, NameError, ValueError, AlgorithmError) as err:
         logging.error(err)
 

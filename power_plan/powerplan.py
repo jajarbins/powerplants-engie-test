@@ -1,4 +1,4 @@
-from useful_functions_and_class.custom_exceptions import AlgorithmError
+from power_plan.custom_exceptions import AlgorithmError
 
 
 class Payload:
@@ -35,7 +35,7 @@ class Fuels:
 
 
 
-class PowerFinder(Payload):
+class PowerPlan(Payload):
     """The class that will find the production plan."""
 
     def __init__(self, data):

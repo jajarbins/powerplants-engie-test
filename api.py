@@ -2,7 +2,7 @@ import logging
 from flask import Flask, request
 from flask_restful import Resource, Api
 
-from useful_functions_and_class.error_catcher_functions import find_powerplants_production, extract_json_from_request, \
+from power_plan.error_catcher_functions import find_powerplants_production, extract_json_from_request, \
     sanity_check
 
 

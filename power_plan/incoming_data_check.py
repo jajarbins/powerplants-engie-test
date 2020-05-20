@@ -1,4 +1,4 @@
-from useful_functions_and_class.custom_exceptions import SanityCheckInternalError
+from power_plan.custom_exceptions import SanityCheckInternalError
 
 first_layer_keys_and_values_type_and_interval = [
     ("load", int, (0,)),

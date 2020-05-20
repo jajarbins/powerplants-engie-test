@@ -2,7 +2,7 @@ import unittest
 import json
 import logging
 
-from Api import app
+from api import app
 from tests import expected_output, payload
 
 

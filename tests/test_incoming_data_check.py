@@ -1,8 +1,8 @@
 import unittest
 
 from . import payload
-from useful_functions_and_class.custom_exceptions import SanityCheckInternalError
-from useful_functions_and_class.incoming_data_check import type_checking, values_checking, interval_checking, \
+from power_plan.custom_exceptions import SanityCheckInternalError
+from power_plan.incoming_data_check import type_checking, values_checking, interval_checking, \
     convert_interval_value, check_json_layer, perform_sanity_check
 
 

@@ -40,7 +40,7 @@ Basically, the Api:
 ## Algorithm Explanation
 
 In this API, we use an algorithm to find the production of the powerplants in order to fill the load and minimize the cost
-of producing electricity. You can find it in the update_powerplants_production method of PowerFinder class.
+of producing electricity. You can find it in the update_powerplants_production method of PowerPlan class.
 
 The Algorithms takes a list of Powerplant object sorted in the merit order and sum their maximum production until the 
 total production is equal to the load.
