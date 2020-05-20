@@ -1,11 +1,5 @@
 # Coding Challenge
 
-Work in Progress, TODO :
-- Add parts to README (API Logic Explanation ; Algorithm Explanation)
-- dockerise
-
-
-
 ## Welcome !
 
 This is my implementation of the coding challenge proposed by the IS team of the SPaaS team within ENGIE GEM
