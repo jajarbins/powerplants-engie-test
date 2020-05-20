@@ -4,7 +4,7 @@ from useful_functions_and_class.custom_exceptions import AlgorithmError
 class Payload:
     def __init__(self, data):
         self.load = data["load"]
-        self.fuels = data["fuels"]
+        self.fuels = Fuels(data["fuels"])
         self.powerplants = [Powerplant(powerplant) for powerplant in data["powerplants"]]
         self.emissions = 0.3  # ton of co2 per Mwh (for both Gaz and Kerosine ?)
 
@@ -24,6 +24,15 @@ class Powerplant:
 
     def set_production(self, production):
         self.production = production
+
+
+class Fuels:
+    def __init__(self, fuels):
+        self.gas = fuels["gas(euro/MWh)"]
+        self.kerosine = fuels["kerosine(euro/MWh)"]
+        self.co2 = fuels["co2(euro/ton)"]
+        self.wind = fuels["wind(%)"]
+
 
 
 class PowerFinder(Payload):
@@ -52,13 +61,13 @@ class PowerFinder(Payload):
         for pp in self.powerplants:
             cost = 0
             if pp.type == "windturbine":
-                pp.pmax = int(pp.pmax * self.fuels["wind(%)"] / 100)
+                pp.pmax = int(pp.pmax * self.fuels.wind / 100)
             elif pp.type == "turbojet" or pp.type == "gasfired":
                 cost = self.__estimate_cost(pp)
             else:
                 raise TypeError(f"unknown powerplant type: {pp.type}. Should be: windturbine, turbojet or gasfired")
             pp.set_cost(cost)
-            self.__insort(powerplants_sorted, pp)
+            self.insort_powerplants_by_cost(powerplants_sorted, pp)
 
         self.powerplants = powerplants_sorted
 
@@ -70,7 +79,6 @@ class PowerFinder(Payload):
 
             if self.__is_load_already_satisfied(total_production):
                 pp.set_production(0)
-                continue
 
             elif self.__is_load_unsatisfied_by_adding_powerplant_max_production(total_production, pp.pmax):
                 total_production += self.__update_current_powerplant_production(pp, pp.pmax)
@@ -90,14 +98,14 @@ class PowerFinder(Payload):
         return [{"name": pp.name, "p": pp.production} for pp in self.powerplants]
 
     @staticmethod
-    def __insort(a, x):
+    def insort_powerplants_by_cost(a, x):
         """
         a custum insert_right function from bisect module.
-        insert "x" in "a" assuming "x" is a dict, "a" a list of dict, "x" and every dict
-        in "a" contains the key "cost".
+        insert "x" in "a" assuming "x" is a Powerplant, "a" a list of Powerplants, "x" and "cost" parameter is set in
+        every Powerplant in "a".
 
         Parameters:
-            a (list): a list of dictionary, the dictionaries must contain "cost" as key
+            a (list): a list of PowerPlants, the dictionaries must contain "cost" as key
             x (Powerplant): the dict to insert in the "cost" value order.
         """
         lo = 0
@@ -119,9 +127,9 @@ class PowerFinder(Payload):
         Returns:
             cost (float): The cost of generating power with a powerplant
         """
-        return powerplant.efficiency * (self.set_fuel(powerplant) + self.fuels["co2(euro/ton)"] * self.emissions)
+        return powerplant.efficiency * (self.__set_fuel(powerplant) + self.fuels.co2 * self.emissions)
 
-    def set_fuel(self, powerplant):
+    def __set_fuel(self, powerplant):
         """
         Given a powerplant, returns its fuel cost.
 
@@ -131,9 +139,9 @@ class PowerFinder(Payload):
             fuel (float): the cost of the fuel
         """
         if powerplant.type == "gasfired":
-            return self.fuels["gas(euro/MWh)"]
+            return self.fuels.gas
         elif powerplant.type == "turbojet":
-            return self.fuels["kerosine(euro/MWh)"]
+            return self.fuels.kerosine
         elif powerplant.type == "windturbine":
             return 0
         else:

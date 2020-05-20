@@ -16,23 +16,17 @@ def find_powerplants_production(payload_data):
     Returns:
         message: False if the incoming dict is correct, an error message otherwise
     """
-    response = None
     try:
-        response = PowerFinder(payload_data).run()
+        return PowerFinder(payload_data).run()
     except (TypeError, AttributeError, IndexError, KeyError, NameError, ValueError, AlgorithmError) as err:
         logging.error(err)
-        response = {"error": err}
-    finally:
-        return response
 
 
 def extract_json_from_request(request):
     try:
-        payload_data_dict = request.get_json()
+        return request.get_json()
     except Exception as err:
         logging.error(err)
-        return False, err
-    return True, payload_data_dict
 
 
 def sanity_check(data):
@@ -40,7 +34,5 @@ def sanity_check(data):
         perform_sanity_check(data)
     except (ValueError, TypeError, SanityCheckInternalError) as err:
         logging.error(err)
-        return False, err
-    return True, ""
 
 

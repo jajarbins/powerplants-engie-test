@@ -2,8 +2,8 @@ import logging
 from flask import Flask, request
 from flask_restful import Resource, Api
 
-from useful_functions_and_class.error_catcher_functions import find_powerplants_production
-from useful_functions_and_class.extract_data import extract_data
+from useful_functions_and_class.error_catcher_functions import find_powerplants_production, extract_json_from_request, \
+    sanity_check
 
 
 app = Flask(__name__)
@@ -12,13 +12,12 @@ api = Api(app)
 
 class Power(Resource):
     def post(self):
-        request_body_content = extract_data(request)
-        if "error" in request_body_content and len(request_body_content) == 1:
-            return request_body_content
-        return find_powerplants_production(request_body_content)
+        data = extract_json_from_request(request)
+        sanity_check(data)
+        return find_powerplants_production(data)
 
 
-api.add_resource(Power, '/power')
+api.add_resource(Power, '/')
 
 
 if __name__ == '__main__':

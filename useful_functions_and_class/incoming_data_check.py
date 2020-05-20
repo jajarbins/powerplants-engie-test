@@ -74,46 +74,48 @@ def values_checking(values_list, expected_values):
         raise ValueError(error_message)
 
 
-def interval_checking(json_layer, layer_key, interval):
+def interval_checking(dict_layer, key, interval):
     """
     Check if layer_key of json_layer is in interval
     If interval contains one value, layer_key value must be higher,
     If interval contains two values, mayer_key value must be betwwen those values
 
     Parameters:
-        json_layer (dict): the current json layer to test
-        layer_key (str): the current dict item's key to test
-        interval (tuple):
+        dict_layer (dict): the current json layer to test
+        key (str): the current dict item's key to test
+        interval (tuple): a tuple of one or two Items. Items can be int, float or string as long as the string is a key
+                            of the dictionary provided.
     """
     if len(interval) == 1:
-        minimum_value = convert_interval_value(interval[0], json_layer)
+        minimum_value = convert_interval_value(interval[0], dict_layer)
 
-        if json_layer[layer_key] - minimum_value < 0:
-            raise ValueError(f"{layer_key} value: {json_layer[layer_key]} must be higher than {minimum_value}")
+        if dict_layer[key] - minimum_value > 0:
+            raise ValueError(f"{key} value: {dict_layer[key]} must be higher than {minimum_value}")
     elif len(interval) == 2:
-        minimum_value = convert_interval_value(interval[0], json_layer)
-        maximum_value = convert_interval_value(interval[1], json_layer)
+        minimum_value = convert_interval_value(interval[0], dict_layer)
+        maximum_value = convert_interval_value(interval[1], dict_layer)
 
-        if not minimum_value <= json_layer[layer_key] <= maximum_value:
-            raise ValueError(f"{layer_key} value of {json_layer[layer_key]} is not in the interval "
-                             f"[{minimum_value}, {maximum_value}] for dict {json_layer} ")
+        if not minimum_value <= dict_layer[key] <= maximum_value:
+            raise ValueError(f"{key} value of {dict_layer[key]} is not in the interval "
+                             f"[{minimum_value}, {maximum_value}] for dict {dict_layer} ")
     else:
         raise SanityCheckInternalError("Incorrect number of element in interval parameter.")
 
 
-def convert_interval_value(interval_bound, json_layer=None):
+def convert_interval_value(interval_bound, dict_layer=None):
     """
-    if interval_bound is a string, we return the associated value with this key
+    if interval_bound is a string, we return the dict_layer's value associated with this key
 
     Parameters:
-        interval_bound (int, float, str):
-        json_layer (dict):
+        interval_bound (int, float, str): a number to return or a string to convert to a value
+        dict_layer (dict): the dictionary on which we return the associated value to it's key interval_bound, if
+                            interval_bound is a string
     Returns:
-        interval_bound (int, float)
+        interval_bound (int, float): the bound of an interval
     """
     if isinstance(interval_bound, str):
-        if json_layer is not None:
-            return json_layer[interval_bound]
+        if dict_layer is not None:
+            return dict_layer[interval_bound]
         else:
             raise SanityCheckInternalError(
                 "You should provide the dictionary you are analysing as parameters to the current function")
