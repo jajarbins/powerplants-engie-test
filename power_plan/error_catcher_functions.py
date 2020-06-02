@@ -20,6 +20,7 @@ def find_powerplants_production(payload_data):
         return PowerPlan(payload_data).run()
     except (TypeError, AttributeError, IndexError, KeyError, NameError, ValueError, AlgorithmError) as err:
         logging.error(err)
+        return {"error": err.args[0]}
 
 
 def extract_json_from_request(request):
@@ -27,6 +28,8 @@ def extract_json_from_request(request):
         return request.get_json()
     except Exception as err:
         logging.error(err)
+        return {"error": err.args[0]}
+
 
 
 def sanity_check(data):
@@ -34,5 +37,7 @@ def sanity_check(data):
         perform_sanity_check(data)
     except (ValueError, TypeError, SanityCheckInternalError) as err:
         logging.error(err)
+        return {"error": err.args[0]}
+
 
 
