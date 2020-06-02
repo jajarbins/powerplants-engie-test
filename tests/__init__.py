@@ -6,12 +6,14 @@ payload = {
         "co2(euro/ton)": 20,
         "wind(%)": 60
     },
-    "powerplants": [{
+    "powerplants": [
+        {
             "name": "gasfiredbig1",
             "type": "gasfired",
             "efficiency": 0.53,
             "pmin": 100,
-            "pmax": 460},
+            "pmax": 460
+        },
         {
             "name": "gasfiredbig2",
             "type": "gasfired",

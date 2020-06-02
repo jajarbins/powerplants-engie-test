@@ -127,7 +127,9 @@ class PowerPlan(Payload):
         Returns:
             cost (float): The cost of generating power with a powerplant
         """
-        return powerplant.efficiency * (self.__set_fuel(powerplant) + self.fuels.co2 * self.emissions)
+        return (self.__set_fuel(powerplant) / powerplant.efficiency) + (self.fuels.co2 * self.emissions)
+
+
 
     def __set_fuel(self, powerplant):
         """
